@@ -22,7 +22,7 @@ To use it in your Mix projects, first add it as a dependency:
 
 ```elixir
 def deps do
-  [{:logger_logentries_backend, github: "sysdia-solutions/logger_logentries_backend"}]
+  [{:logger_logentries_backend, "~> 0.0.1"}]
 end
 ```
 Then run mix deps.get to install it.
