@@ -1,8 +1,12 @@
 defmodule Output.Test do
   @logfile "test_log.log"
 
-  def transmit(_host, _port, message) do
-    File.write!(@logfile, message)
+  def open(_host, _port) do
+    File.open(@logfile, [:write])
+  end
+
+  def transmit(file, message) do
+    IO.write(file, message)
   end
 
   def read() do
@@ -39,6 +43,7 @@ defmodule Logger.Backend.Logentries.Test do
     ])
     on_exit fn ->
       connector.destroy()
+      remove_connection()
     end
     :ok
   end
@@ -68,12 +73,15 @@ defmodule Logger.Backend.Logentries.Test do
     assert read_log() == "I am formatted <<logentries-token>> (info)\n"
   end
 
-  test "can configure metadata" do
+  test "it doesn't log metadata if configured but not set" do
     config format: "$metadata$message\n", metadata: [:user_id, :auth]
 
     Logger.info("hello")
     assert read_log() == "hello <<logentries-token>>\n"
+  end
 
+  test "can configure metadata" do
+    config format: "$metadata$message\n", metadata: [:user_id, :auth]
     Logger.metadata(auth: true)
     Logger.metadata(user_id: 11)
     Logger.metadata(user_id: 13)
@@ -93,5 +101,9 @@ defmodule Logger.Backend.Logentries.Test do
 
   defp read_log() do
     connector().read()
+  end
+
+  defp remove_connection() do
+    :ok = GenEvent.call(Logger, @backend, :remove_connection)
   end
 end
