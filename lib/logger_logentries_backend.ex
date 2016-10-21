@@ -44,7 +44,7 @@ defmodule Logger.Backend.Logentries do
   end
 
   defp log_event(level, msg, ts, md, %{connector: connector, connection: connection, token: token} = state) do
-    log_entry = format_event(level, "#{msg} #{token}", ts, md, state)
+    log_entry = format_event(level, "#{token} #{msg}", ts, md, state)
     connector.transmit(connection, log_entry)
     state
   end
