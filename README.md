@@ -13,8 +13,9 @@ that will send logs to the [Logentries TCP input](https://logentries.com/doc/inp
 * **token**: String.t. The unique logentries token for the log destination.
 * **format**: String.t. The logging format of the message. [default: `[$level] $message\n`].
 * **level**: Atom. Minimum level for this backend. [default: `:debug`]
-* **metdata**: Keyword.t. Extra fields to be added when sending the logs. These will
+* **metadata**: Keyword.t. Extra fields to be added when sending the logs. These will
 be merged with the metadata sent in every log message.
+* **metadata_filter**: Keyword.t. Metadata fields which must be present in order to send the log.
 
 ## Using it with Mix
 
@@ -53,4 +54,25 @@ config :logger, :error_log,
   token: "logentries-token-goes-here",
   level: :error,
   format: "[$level] $message\n"
+```
+
+### Only logging specific messages
+
+Using the `metadata_filter` option, you can specify which log lines will be sent to Logentries. This example only
+logs lines when the custom `logentries` metadata key is given as `true`:
+
+```elixir
+config :logger,
+  backends: [{Logger.Backend.Logentries, :logentries}, :console]
+
+config :logger, :logentries,
+  host: 'data.logentries.com',
+  port: 10000,
+  token: "logentries-token-goes-here",
+  level: :debug,
+  format: "[$level] $message\n",
+  metadata_filter: [logentries: true]
+
+# Usage in code:
+Logger.info("message", logentries: true)
 ```
