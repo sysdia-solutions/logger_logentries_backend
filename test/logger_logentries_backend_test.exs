@@ -39,7 +39,8 @@ defmodule Logger.Backend.Logentries.Test do
       host: 'logentries.url',
       port: 10000,
       format: "[$level] $message\n",
-      token: "<<logentries-token>>"
+      token: "<<logentries-token>>",
+      metadata_filter: []
     ])
     on_exit fn ->
       connector.destroy()
@@ -63,21 +64,21 @@ defmodule Logger.Backend.Logentries.Test do
     config(level: :info)
     Logger.warn("you will log me")
     assert connector().exists()
-    assert read_log() == "[warn] you will log me <<logentries-token>>\n"
+    assert read_log() == "[warn] <<logentries-token>> you will log me\n"
   end
 
   test "can configure format" do
     config format: "$message ($level)\n"
 
     Logger.info("I am formatted")
-    assert read_log() == "I am formatted <<logentries-token>> (info)\n"
+    assert read_log() == "<<logentries-token>> I am formatted (info)\n"
   end
 
   test "it doesn't log metadata if configured but not set" do
     config format: "$metadata$message\n", metadata: [:user_id, :auth]
 
     Logger.info("hello")
-    assert read_log() == "hello <<logentries-token>>\n"
+    assert read_log() == "<<logentries-token>> hello\n"
   end
 
   test "can configure metadata" do
@@ -87,7 +88,22 @@ defmodule Logger.Backend.Logentries.Test do
     Logger.metadata(user_id: 13)
 
     Logger.info("hello")
-    assert read_log() == "user_id=13 auth=true hello <<logentries-token>>\n"
+    assert read_log() == "user_id=13 auth=true <<logentries-token>> hello\n"
+  end
+
+  test "can configure metadata_filter" do
+    config format: "$message\n", metadata_filter: [test: true]
+    Logger.info("hello", test: true)
+    assert read_log() == "<<logentries-token>> hello\n"
+  end
+
+  test "can exclude messages with metadata_filter" do
+    config format: "$message\n", metadata_filter: [test: true]
+    Logger.info("a", test: true)
+    Logger.info("b")
+    Logger.info("c", test: false)
+    Logger.info("d", test: true)
+    assert read_log() == "<<logentries-token>> a\n<<logentries-token>> d\n"
   end
 
   defp config(opts) do

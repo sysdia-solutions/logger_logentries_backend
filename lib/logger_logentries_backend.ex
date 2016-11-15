@@ -21,8 +21,8 @@ defmodule Logger.Backend.Logentries do
     {:ok, :ok, %{state | connection: nil}}
   end
 
-  def handle_event({level, _gl, {Logger, msg, ts, md}}, %{level: min_level} = state) do
-    state = if is_nil(min_level) or Logger.compare_levels(level, min_level) != :lt do
+  def handle_event({level, _gl, {Logger, msg, ts, md}}, %{level: min_level, metadata_filter: metadata_filter} = state) do
+    state = if (is_nil(min_level) or Logger.compare_levels(level, min_level) != :lt) and metadata_matches?(md, metadata_filter) do
       open_connection_and_log_event(state, level, msg, ts, md, true)
     else
       state
@@ -53,6 +53,16 @@ defmodule Logger.Backend.Logentries do
     Logger.Formatter.format(format, level, msg, ts, take_metadata(md, keys))
   end
 
+  def metadata_matches?(_md, nil), do: true
+  def metadata_matches?(_md, []), do: true
+  def metadata_matches?(md, [{key, val} | rest]) do
+    case Keyword.fetch(md, key) do
+      {:ok, ^val} ->
+        metadata_matches?(md, rest)
+      _ -> false
+    end
+  end
+
   defp take_metadata(metadata, keys) do
     Enum.reduce(keys, [], fn key, acc ->
       case Keyword.fetch(metadata, key) do
@@ -72,7 +82,8 @@ defmodule Logger.Backend.Logentries do
       format: nil,
       metadata: nil,
       token: nil,
-      connection: nil
+      connection: nil,
+      metadata_filter: nil
     }
     configure(name, opts, state)
   end
@@ -89,6 +100,7 @@ defmodule Logger.Backend.Logentries do
     metadata = Keyword.get(opts, :metadata, [])
     format = Keyword.get(opts, :format, @default_format) |> Logger.Formatter.compile
     token = Keyword.get(opts, :token, "")
+    metadata_filter = Keyword.get(opts, :metadata_filter)
 
     %{
       state |
@@ -100,6 +112,7 @@ defmodule Logger.Backend.Logentries do
       format: format,
       metadata: metadata,
       token: token,
+      metadata_filter: metadata_filter
     }
   end
 
