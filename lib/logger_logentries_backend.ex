@@ -17,7 +17,7 @@ defmodule Logger.Backend.Logentries do
     {:ok, {:ok, connector}, state}
   end
 
-  def handle_call(:remove_connection, %{name: name} = state) do
+  def handle_call(:remove_connection, %{name: _name} = state) do
     {:ok, :ok, %{state | connection: nil}}
   end
 
@@ -38,7 +38,7 @@ defmodule Logger.Backend.Logentries do
     open_connection(state) |> open_connection_and_log_event(level, msg, ts, md, false)
   end
 
-  def open_connection_and_log_event(%{connection: connection} = state, level, msg, ts, md, retry) when is_nil(connection) and retry == false do
+  def open_connection_and_log_event(%{connection: connection} = state, _level, _msg, _ts, _md, retry) when is_nil(connection) and retry == false do
     Logger.error("connection to logentries is not open")
     state
   end

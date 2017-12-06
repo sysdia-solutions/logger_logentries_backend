@@ -43,7 +43,7 @@ defmodule Logger.Backend.Logentries.Test do
       metadata_filter: []
     ])
     on_exit fn ->
-      connector.destroy()
+      connector().destroy()
       remove_connection()
     end
     :ok
