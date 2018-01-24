@@ -34,7 +34,7 @@ Then run mix deps.get to install it.
 
 ```elixir
 Logger.add_backend {Logger.Backend.Logentries, :debug}
-Logger.configure {Logger.Backend.Logentries, :debug},
+Logger.configure_backend {Logger.Backend.Logentries, :debug},
   host: 'data.logentries.com',
   port: 10000,
   token: "logentries-token-goes-here",
