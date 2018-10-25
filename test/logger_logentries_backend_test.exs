@@ -119,7 +119,7 @@ defmodule Logger.Backend.Logentries.Test do
   end
 
   defp connector() do
-    {:ok, connector} = GenEvent.call(Logger, @backend, :connector)
+    {:ok, connector} = :gen_event.call(Logger, @backend, :connector)
     connector
   end
 
@@ -128,6 +128,6 @@ defmodule Logger.Backend.Logentries.Test do
   end
 
   defp remove_connection() do
-    :ok = GenEvent.call(Logger, @backend, :remove_connection)
+    :ok = :gen_event.call(Logger, @backend, :remove_connection)
   end
 end
