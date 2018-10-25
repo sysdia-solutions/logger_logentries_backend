@@ -44,11 +44,16 @@ defmodule Logger.Backend.Logentries do
   end
 
   defp log_event(level, msg, ts, md, %{connector: connector, connection: connection, token: token} = state) do
-    msg = String.replace(msg, "\n", " ", global: true)
+    msg = maybe_replace_newlines(msg)
     log_entry = format_event(level, "#{token} #{msg}", ts, md, state)
     connector.transmit(connection, log_entry)
     state
   end
+
+  defp maybe_replace_newlines(msg) when is_binary(msg) do
+    String.replace(msg, "\n", " ", global: true)
+  end
+  defp maybe_replace_newlines(msg), do: msg
 
   defp format_event(level, msg, ts, md, %{format: format, metadata: keys}) do
     Logger.Formatter.format(format, level, msg, ts, take_metadata(md, keys))
