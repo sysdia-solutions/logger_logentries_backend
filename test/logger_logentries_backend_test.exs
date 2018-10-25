@@ -67,6 +67,14 @@ defmodule Logger.Backend.Logentries.Test do
     assert read_log() == "[warn] <<logentries-token>> you will log me\n"
   end
 
+  test "replaces \n in a binary msg by empty spaces" do
+    refute connector().exists()
+    config(level: :info)
+    Logger.warn("you\nwill\nlog\nme")
+    assert connector().exists()
+    assert read_log() == "[warn] <<logentries-token>> you will log me\n"
+  end
+
   test "can configure format" do
     config format: "$message ($level)\n"
 
